@@ -1,7 +1,3 @@
-example_board = ['#', '1', '2', '3', '4', '5', '6', '7', '8', '9']
-board = [ ' ' for num in range(0,10) ]
-active_player = 0
-
 def print_board(board):
     print(f' {board[1]} | {board[2]} | {board[3]}')
     print('-----------')
@@ -9,25 +5,39 @@ def print_board(board):
     print('-----------')
     print(f' {board[7]} | {board[8]} | {board[9]}')
 
+def intro():
+    print('This is a tic tac toe game for 2 players. Input a move by pressing a number corresponding to a space')
+    example_board = ['#', '1', '2', '3', '4', '5', '6', '7', '8', '9']
+    print_board(example_board)
+
+def player_symbols():
+    # Receive the players preferred symbol and uppercase it
+    # Also validate that the input is either X or O
+    # players = tuple(input('First player, do you want to be X or O?\n').upper())
+    while True:
+        try:
+            players = tuple(input('First player, do you want to be X or O?\n').upper())
+            if not players or players[0] not in ('X', 'O'):
+                print('You must choose either X or O. Please try again!')
+                continue
+
+            if players[0] == 'X':
+                players += ('O',)
+            else:
+                players += ('X',)
+        except ValueError:
+            print('You must choose either X or O. Please try again!')
+            continue
+        else:
+            return players
+
 # Intro
-print('This is a tic tac toe game for 2 players. Input a move by pressing a number corresponding to a space')
-print_board(example_board)
-
-# Receive the players preferred symbol and uppercase it
-# Also validate that the input is either X or O
-players = tuple(input('First player, do you want to be X or O?\n').upper())
-
-while players[0] not in ('X', 'O'):
-    players = tuple(input('You must choose either X or O. Please try again!\n').upper())
-
-if players[0] == 'X':
-    players += ('O',)
-else:
-    players += ('X',)
-
-# Prompt players to start the game
-input(f'player one is {players[0]}. Press any key to play!')
-print_board(board)
+def init_game():
+    intro()
+    players = player_symbols()
+    # Prompt players to start the game
+    input(f'player one is {players[0]}. Press any key to play!')
+    game(players)
 
 def next_active_player(active_player):
     if active_player == 1:
@@ -37,13 +47,13 @@ def next_active_player(active_player):
 
     return next_player
 
-def make_move(index):
-    board[index] = players[active_player]
+def make_move(index, board, player):
+    board[index] = player
 
-def get_next_move():
+def get_next_move(player, board):
     while True:
         try:
-            next_move_index = int(input(f'Player {players[active_player]}, What is your next move? \n'))
+            next_move_index = int(input(f'Player {player}, What is your next move? \n'))
             if board[next_move_index] != ' ':
                 print('That spot is already taken')
                 continue
@@ -53,14 +63,14 @@ def get_next_move():
         else:
             return next_move_index
 
-def check_draw():
+def check_draw(board):
     empty_spaces = list(filter(lambda space: space == ' ', board))
     if len(empty_spaces) <= 1:
         return True
     else:
         return False
 
-def check_win(player):
+def check_win(player, board):
     win = False
     winning_sequences = [
         (1,2,3),
@@ -81,23 +91,35 @@ def check_win(player):
     return win
 
 
-def check_game_status():
+def check_game_status(board):
 
-    if check_win('X'):
+    if check_win('X', board):
         print('player X won')
         return False
-    elif check_win('O'):
+    elif check_win('O', board):
         print('player O won')
         return False
-    elif check_draw():
+    elif check_draw(board):
         print('game ended in a draw')
         return False
     else:
         return True
 
 # Game loop
-while check_game_status():
-    next_move_index = get_next_move()
-    make_move(next_move_index)
+def game(players):
+    board = [ ' ' for num in range(0,10) ]
+    active_player = 0
+
     print_board(board)
-    active_player = next_active_player(active_player)
+
+    while check_game_status(board):
+        next_move_index = get_next_move(players[active_player], board)
+        make_move(next_move_index, board, players[active_player])
+        print_board(board)
+        active_player = next_active_player(active_player)
+
+    play_again = input('Press X to exit game, press any key to play again.').upper()
+    if play_again != 'X':
+        init_game()
+
+init_game()
